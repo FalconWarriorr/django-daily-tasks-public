@@ -1,0 +1,128 @@
+{% extends "todo/base.html" %}
+
+{% block content %}
+
+
+<div class="container-fluid">
+    <form id="task-form">
+        <div class="row">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group col-2">
+                <label class="col-12"> {{ field.label }}</label>
+                {{ field }}
+            </div>
+            {% endfor %}
+        </div>
+    </form>
+</div>
+
+<div class="container-fluid" id="task-list">
+    <ul>
+        {% for task in tasks %}
+            <form class="was-validated" id="form-{{ task.pk }}">
+                <div class="custom-control custom-checkbox mb-3">
+                    <input type="checkbox" class="custom-control-input" id="task-{{ task.pk }}" name="task_done" required>
+                    <label class="custom-control-label" for="task-{{ task.pk }}"> {{ task.task }}</label>
+                    <!--div class="invalid-feedback"> Task not done </div--> 
+                </div>
+            </form>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock content %}
+
+{% block javascript %}
+<script>
+    $(document).ready(function () {
+	    // This should make ajax always use csrf token	
+        var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+       	function csrfSafeMethod(method) {
+			// these HTTP methods do not require CSRF protection
+			return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+		}
+		$.ajaxSetup({
+			beforeSend: function(xhr, settings) {
+				if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+					xhr.setRequestHeader("X-CSRFToken", csrftoken);
+				}
+			}
+		}); 
+
+       	function check_boxes() {
+			{% for task in tasks %}
+                if( "{{ task.task_done }}" == "True" ) {
+                    $("#task-{{ task.pk }}").prop('checked', true)
+                }
+                else {
+                    $("#task-{{ task.pk }}").prop('checked', false)
+                }
+
+			{% endfor %}
+		} 
+        check_boxes();
+
+        $("#task-list").click(function (e) {
+            var target = $( e.target );
+            var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+
+            if(target.is("input")) {
+                $.ajax({
+                    type: 'POST',
+                    url: "{% url 'todo:update_task_done' %}",
+                    data: { 'taskId': target.attr('id'), 'taskDone': target.prop('checked')},
+                    dataType: 'json',
+                    success: function(response) {},
+                    error: function(response) {
+                        alert(response["responseJSON"]["error"]);
+                    }
+                })
+            }
+        })
+        
+        $("#task-form").keypress(function (e) {
+            if(e.which == 13) {
+                e.preventDefault();
+                var serializedData = $(this).serialize();
+                //Make POST ajax call
+                $.ajax({
+                    type: 'POST',
+                    url: "{% url 'todo:post_task' %}",
+                    data: serializedData,
+                    success: function (response) {
+                        //On successful object creation
+                        //clear the form
+                        $("#task-form").trigger('reset');
+
+                        //Display new task
+                        var instance = JSON.parse(response["instance"]);
+                        var fields = instance[0]["fields"];
+                        /*
+                        $("#task-list ul").append(
+                            `<input type="checkbox" id="task_done" name="task_done"> ${fields["task"]} <br>`
+                        )
+                        */
+                        $("#task-list ul").append(
+                            `<form class="was-validated" id="form-${instance[0]['pk']}">
+                                <div class="custom-control custom-checkbox mb-3">
+                                    <input type="checkbox" class="custom-control-input" id="task-${instance[0]['pk']}" name="task_done" required>
+                                    <label class="custom-control-label" for="task-${instance[0]['pk']}"> ${fields["task"]} </label>
+                                </div>
+                            </form>`
+                        )
+                        check_boxes();
+                    },
+                    error: function(response) {
+                        alert(response["responseJSON"]["error"]);
+                    }
+                })
+            }
+        })
+    })
+
+</script>
+{% endblock javascript %}
+
+
+
+
