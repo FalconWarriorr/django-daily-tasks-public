@@ -24,7 +24,7 @@ class ToDo(models.Model):
     def refresh_task(self):
         if(weekdays_list_ToDo[timezone.now().weekday()] in self.refresh_days_field):
             refresh_today_datetime = make_aware(datetime.datetime(datetime.datetime.now().year, datetime.datetime.now().month, datetime.datetime.now().day, self.refresh_time.hour, self.refresh_time.minute, self.refresh_time.second))
-            if self.last_refreshed < refresh_today_datetime:
+            if self.last_refreshed < refresh_today_datetime and refresh_today_datetime < timezone.now():
                 #Store value of task_done in db for last refresh day
                 self.task_done = False
                 self.last_refreshed = timezone.now()
