@@ -8,7 +8,7 @@
         <div class="row">
             {% csrf_token %}
             {% for field in form %}
-            <div class="form-group col-2">
+            <div class="form-group col-xl-3 col-lg-4 col-md-4 col-sm-4">
                 <label class="col-12"> {{ field.label }}</label>
                 {{ field }}
             </div>
