@@ -3,11 +3,18 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.core import serializers
 
-from .models import ToDo
-from .forms import ToDoForm
+from .models import ToDo, Mod
+from .forms import ToDoForm, ModForm
 from django.utils import timezone
 
 import json as jsonjson
+
+def modView(request):
+    form = ModForm()
+    mods = Mod.objects.all()
+
+    return render(request, "todo/mod_list.html", {"form": form, "mods": mods})
+
 def indexView(request):
     current_time = timezone.now()
     form = ToDoForm(initial={'refresh_time': timezone.localtime(timezone.now()), 'refresh_days_field': 'MTWHFSU'})
@@ -17,6 +24,23 @@ def indexView(request):
         task.refresh_task()
 
     return render(request, "todo/list.html", {"form": form, "tasks": tasks})
+
+def postMod(request):
+    #request should be ajax with method POST
+    if request.is_ajax and request.method == "POST":
+        #get forms data
+        form = ModForm(request.POST)
+        if form.is_valid():
+            instance = form.save()
+            ser_instance = serializers.serialize('json', [ instance ])
+            return JsonResponse({"instance": ser_instance}, status=200)
+        else:
+            #Some form error occured
+            return JsonResponse({"error": form.errors}, status=400)
+
+    #Some other error occured
+    return JsonResponse({"error": ""}, status=400)
+    
 
 def postTask(request):
     #request should be ajax with method POST
@@ -32,6 +56,22 @@ def postTask(request):
             return JsonResponse({"error": form.errors}, status=400)
 
     #Some other error occured
+    return JsonResponse({"error": ""}, status=400)
+
+def updateModAdded(request):
+    #request should be ajax with method POST
+    if request.is_ajax and request.method == "POST":
+        post = request.POST
+        mod_pk = post["modId"][4:]
+        mod_added = post["modAdded"]
+        instance = Mod.objects.get(pk=int(mod_pk))
+        if mod_added == "true":
+            instance.mod_added = True
+        else:
+            instance.mod_added = False
+        instance.save()
+
+        return JsonResponse({"success": ""}, status=200)
     return JsonResponse({"error": ""}, status=400)
 
 def updateTaskDone(request):

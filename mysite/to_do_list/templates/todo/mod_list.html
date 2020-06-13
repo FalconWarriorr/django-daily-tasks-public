@@ -1,0 +1,123 @@
+{% extends "todo/base.html" %}
+
+{% block content %}
+
+<div class="container-fluid">
+    <form id="mod-form">
+        <div class="row">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group col-xl-3 col-lg-4 col-md-4 col-sm-4">
+                <label class="col-12"> {{ field.label }}</label>
+                {{ field }}
+            </div>
+            {% endfor %}
+        </div>
+    </form>
+</div>
+
+<div class="container-fluid" id="mod-list">
+    <ul>
+        {% for mod in mods %}
+            <form class="was-validated" id="form-{{ mod.pk }}">
+                <div class="custom-control custom-checkbox mb-3">
+                    <input type="checkbox" class="custom-control-input" id="mod-{{ mod.pk }}" name="mod_done" required>
+                    <label class="custom-control-label" for="mod-{{ mod.pk }}"> {{ mod.name }} -  {{ mod.link }}</label>
+                    <!--div class="invalid-feedback"> Task not done </div--> 
+                </div>
+            </form>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock content %}
+
+{% block javascript %}
+<script>
+    $(document).ready(function () {
+	    // This should make ajax always use csrf token	
+        var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+       	function csrfSafeMethod(method) {
+			// these HTTP methods do not require CSRF protection
+			return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+		}
+		$.ajaxSetup({
+			beforeSend: function(xhr, settings) {
+				if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+					xhr.setRequestHeader("X-CSRFToken", csrftoken);
+				}
+			}
+		}); 
+
+       	function check_boxes() {
+			{% for mod in mods %}
+                if( "{{ mod.mod_added }}" == "True" ) {
+                    $("#mod-{{ mod.pk }}").prop('checked', true)
+                }
+                else {
+                    $("#mod-{{ mod.pk }}").prop('checked', false)
+                }
+
+			{% endfor %}
+		} 
+        check_boxes();
+
+        $("#mod-list").click(function (e) {
+            var target = $( e.target );
+            var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+
+            if(target.is("input")) {
+                $.ajax({
+                    type: 'POST',
+                    url: "{% url 'todo:update_mod_added' %}",
+                    data: { 'modId': target.attr('id'), 'modAdded': target.prop('checked')},
+                    dataType: 'json',
+                    success: function(response) {},
+                    error: function(response) {
+                        alert(response["responseJSON"]["error"]);
+                    }
+                })
+            }
+        })
+        
+        $("#mod-form").keypress(function (e) {
+            if(e.which == 13) {
+                e.preventDefault();
+                var serializedData = $(this).serialize();
+                //Make POST ajax call
+                $.ajax({
+                    type: 'POST',
+                    url: "{% url 'todo:post_mod' %}",
+                    data: serializedData,
+                    success: function (response) {
+                        //On successful object creation
+                        //clear the form
+                        $("#mod-form").trigger('reset');
+
+                        //Display new mod
+                        var instance = JSON.parse(response["instance"]);
+                        var fields = instance[0]["fields"];
+
+                        $("#mod-list ul").append(
+                            `<form class="was-validated" id="form-${instance[0]['pk']}">
+                                <div class="custom-control custom-checkbox mb-3">
+                                    <input type="checkbox" class="custom-control-input" id="mod-${instance[0]['pk']}" name="mod_done" required>
+                                    <label class="custom-control-label" for="mod-${instance[0]['pk']}"> ${fields["name"]} - ${fields["link"]}</label>
+                                </div>
+                            </form>`
+                        )
+                        check_boxes();
+                    },
+                    error: function(response) {
+                        alert(response["responseJSON"]["error"]);
+                    }
+                })
+            }
+        })
+    })
+
+</script>
+{% endblock javascript %}
+
+
+
+

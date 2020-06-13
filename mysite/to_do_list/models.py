@@ -34,6 +34,10 @@ class ToDo(models.Model):
 
     def __str__(self):
         return self.task
-
-
 #TODO create bullet point class that automatically makes the super task complete when all bullets are done
+
+class Mod(models.Model):
+    name = models.CharField('Mod name', max_length=200)
+    link = models.CharField('Link to mod', max_length=200)
+    mod_added = models.BooleanField('Is the mod added', default=False)
+
