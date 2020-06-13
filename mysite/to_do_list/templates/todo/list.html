@@ -1,7 +1,9 @@
 {% extends "todo/base.html" %}
 
 {% block content %}
-
+<button type="button" class="btn btn-default" aria-label="Left Align">
+    <span class="oi oi-x" title="x" aria-hidden="true"></span>
+</button>
 
 <div class="container-fluid">
     <form id="task-form">
@@ -25,6 +27,9 @@
                     <input type="checkbox" class="custom-control-input" id="task-{{ task.pk }}" name="task_done" required>
                     <label class="custom-control-label" for="task-{{ task.pk }}"> {{ task.task }}</label>
                     <!--div class="invalid-feedback"> Task not done </div--> 
+                   	<button type="button" class="btn btn-primary-outline">
+                        <span class="glyphicon glyphicon-remove"></span>
+                    </button> 
                 </div>
             </form>
         {% endfor %}
