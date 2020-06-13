@@ -22,7 +22,7 @@
             <form class="was-validated" id="form-{{ mod.pk }}">
                 <div class="custom-control custom-checkbox mb-3">
                     <input type="checkbox" class="custom-control-input" id="mod-{{ mod.pk }}" name="mod_done" required>
-                    <label class="custom-control-label" for="mod-{{ mod.pk }}"> {{ mod.name }} -  {{ mod.link }}</label>
+                    <label class="custom-control-label" for="mod-{{ mod.pk }}"> <a href="{{ mod.link }}" target="_blank">{{ mod.name }}</a></label>
                     <!--div class="invalid-feedback"> Task not done </div--> 
                 </div>
             </form>
@@ -101,7 +101,7 @@
                             `<form class="was-validated" id="form-${instance[0]['pk']}">
                                 <div class="custom-control custom-checkbox mb-3">
                                     <input type="checkbox" class="custom-control-input" id="mod-${instance[0]['pk']}" name="mod_done" required>
-                                    <label class="custom-control-label" for="mod-${instance[0]['pk']}"> ${fields["name"]} - ${fields["link"]}</label>
+                                    <label class="custom-control-label" for="mod-${instance[0]['pk']}"> <a href="${fields["link"]}" target="_blank">${fields["name"]}</a> </label>
                                 </div>
                             </form>`
                         )
