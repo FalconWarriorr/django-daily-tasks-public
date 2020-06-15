@@ -7,6 +7,8 @@ like this style of todo list because it brings attention to tasks that don't nee
 
 # Setup guide
 There is no database file included in this repository, so you will need to run
-`python manage.py makemigrations
-python manage.py migrate`
+```
+python manage.py makemigrations
+python manage.py migrate
+```
 Before trying `python manage.py runserver` or the webpage won't work.
